@@ -1,9 +1,9 @@
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect, } from 'react'
 import { Dimmer, Loader, Segment, } from 'semantic-ui-react';
 import braintree from 'braintree-web-drop-in';
 import BraintreeDropin from 'braintree-dropin-react';
 import BraintreeSubmitButton from './BraintreeSubmitButton';
-import { Redirect, } from 'react-router-dom';
+import { Redirect, } from "react-router-dom";
 import axios from 'axios';
 
 const BraintreeDrop = (props) => {
@@ -20,11 +20,30 @@ const BraintreeDrop = (props) => {
         setLoaded(true)
       })
   }, [])
-
   const handlePaymentMethod = (payload) => {
-
+    const { amount } = props
+    axios.post('/api/payment', { amount, ...payload })
+      .then(res => {
+        const { data: transactionId, } = res
+        setTransactionId(transactionId)
+        setRedirect(true)
+      })
+      .catch(res => {
+        window.location.reload()
+      })
   }
-
+  if (redirect)
+    return (
+      <Redirect
+        to={{
+          pathname: "/payment_success",
+          state: {
+            amount: props.amount,
+            transactionId,
+          }
+        }}
+      />
+    )
   if (loaded)
     return (
       <Segment>
@@ -39,9 +58,8 @@ const BraintreeDrop = (props) => {
   else
     return (
       <Dimmer active>
-        <Loader>Loading Premium Payment Experience.  Please wait...</Loader>
+        <Loader>Loading Premium Payment Experience. Please wait...</Loader>
       </Dimmer>
     )
 }
-
 export default BraintreeDrop;
